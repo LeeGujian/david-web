@@ -1,202 +1,451 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>Word Dungeon - 7×7 地牢描述闯关</title>
-<style>
-    body {
-        font-family: system-ui, -apple-system, BlinkMacSystemFont;
-        background: #0f0f17;
-        color: #f4f4f4;
-        margin: 0;
-        padding: 0;
-    }
-    .wrap {
-        max-width: 900px;
-        margin: 20px auto;
-        padding: 25px;
-        border-radius: 20px;
-        background: #1a1a29;
-        box-shadow: 0 0 25px rgba(0,0,0,0.6);
-    }
-    h1 { text-align:center; }
-    .info { text-align:center; color:#bbb; margin-bottom:20px; }
-    .status { display:flex; justify-content:space-between; }
-    .badge {
-        padding:4px 10px;
-        border-radius:30px;
-        font-size:0.85rem;
-    }
-    .scene-img {
-        width:100%;
-        height:260px;
-        border-radius:15px;
-        object-fit:cover;
-        margin:15px 0;
-        border:1px solid #333;
-    }
-    textarea {
-        width:100%;
-        height:150px;
-        background:#111;
-        color:white;
-        border:1px solid #444;
-        border-radius:12px;
-        padding:10px;
-        margin-top:5px;
-    }
-    button {
-        border:none;
-        border-radius:30px;
-        padding:10px 20px;
-        margin-right:10px;
-        cursor:pointer;
-    }
-    .btn-main {
-        background:#4a78ff;
-        color:white;
-    }
-    .btn-next {
-        background:#333;
-        color:#ccc;
-    }
-    .btn-next:disabled { opacity:0.4; cursor:not-allowed; }
-    .score-box {
-        background:#12121d;
-        padding:12px;
-        border-radius:12px;
-        margin-top:10px;
-        border:1px solid #333;
-    }
-    .score-value { font-size:1.5rem; }
-    .good { color:#21d07a; }
-    .bad { color:#ff4d4d; }
-</style>
+    <meta charset="UTF-8">
+    <title>Word Dungeon - 7×7 地牢描述闯关</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            background: radial-gradient(circle at top, #1f2937 0, #020617 55%, #000 100%);
+            color: #e5e7eb;
+        }
+        .wrapper {
+            max-width: 960px;
+            margin: 24px auto;
+            padding: 20px;
+            border-radius: 18px;
+            background: rgba(15,23,42,0.96);
+            box-shadow: 0 24px 60px rgba(0,0,0,0.75);
+            border: 1px solid rgba(148,163,184,0.5);
+        }
+        h1 {
+            margin: 0 0 6px;
+            text-align: center;
+        }
+        .subtitle {
+            text-align: center;
+            font-size: 0.9rem;
+            color: #9ca3af;
+            margin-bottom: 18px;
+        }
+        .status-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.9rem;
+            margin-bottom: 10px;
+        }
+        .badge {
+            padding: 4px 10px;
+            border-radius: 999px;
+            font-size: 0.8rem;
+            border: 1px solid rgba(148,163,184,0.7);
+            background: rgba(15,23,42,0.8);
+        }
+        .badge-pass {
+            border-color: rgba(34,197,94,0.9);
+            background: rgba(22,163,74,0.16);
+            color: #bbf7d0;
+        }
+        .badge-fail {
+            border-color: rgba(248,113,113,0.9);
+            background: rgba(248,113,113,0.16);
+            color: #fecaca;
+        }
+        .progress {
+            width: 100%;
+            height: 10px;
+            border-radius: 999px;
+            background: #020617;
+            overflow: hidden;
+            margin-bottom: 12px;
+        }
+        .progress-inner {
+            height: 100%;
+            width: 0;
+            background: linear-gradient(90deg, #22c55e, #eab308, #ef4444);
+            transition: width .3s ease-out;
+        }
+        .layout {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 18px;
+        }
+        .left, .right {
+            flex: 1 1 300px;
+        }
+        .scene-img {
+            width: 100%;
+            max-height: 280px;
+            border-radius: 14px;
+            object-fit: cover;
+            background: #020617;
+            border: 1px solid rgba(55,65,81,0.9);
+        }
+        .hint-box {
+            margin-top: 8px;
+            font-size: 0.85rem;
+            color: #9ca3af;
+        }
+        textarea {
+            width: 100%;
+            min-height: 170px;
+            border-radius: 14px;
+            border: 1px solid rgba(55,65,81,0.9);
+            background: rgba(15,23,42,0.9);
+            color: #e5e7eb;
+            padding: 10px 12px;
+            font-size: 0.9rem;
+            resize: vertical;
+        }
+        textarea:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 1px rgba(59,130,246,0.8);
+        }
+        .label {
+            font-size: 0.9rem;
+            margin-bottom: 4px;
+        }
+        .textarea-hint {
+            font-size: 0.8rem;
+            color: #9ca3af;
+            margin-top: 4px;
+        }
+        .btn-row {
+            margin-top: 10px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        button {
+            border-radius: 999px;
+            border: none;
+            padding: 8px 18px;
+            font-size: 0.9rem;
+            cursor: pointer;
+        }
+        .btn-primary {
+            background: linear-gradient(90deg, #3b82f6, #22c55e);
+            color: #f9fafb;
+        }
+        .btn-secondary {
+            background: rgba(17,24,39,0.9);
+            color: #e5e7eb;
+            border: 1px solid rgba(107,114,128,0.8);
+        }
+        .btn-secondary:disabled,
+        .btn-primary:disabled {
+            opacity: .45;
+            cursor: not-allowed;
+        }
+        .score-box {
+            margin-top: 10px;
+            padding: 10px 12px;
+            border-radius: 14px;
+            background: rgba(3,7,18,0.9);
+            border: 1px solid rgba(75,85,99,0.9);
+            font-size: 0.9rem;
+        }
+        .score-value {
+            font-size: 1.6rem;
+            font-weight: 700;
+        }
+        .score-good { color: #4ade80; }
+        .score-bad { color: #f97373; }
+        .score-msg {
+            margin-top: 4px;
+        }
+        .footer-note {
+            margin-top: 16px;
+            font-size: 0.8rem;
+            color: #9ca3af;
+            text-align: center;
+        }
+        @media (max-width: 640px) {
+            .wrapper { margin: 10px; padding: 14px; }
+        }
+    </style>
 </head>
 <body>
+<div class="wrapper">
+    <h1>Word Dungeon · 地牢 49 关描述闯关</h1>
+    <div class="subtitle">
+        每关自动生成一张主题图片，请用 <b>英语或德语</b> 描述场景。<br>
+        描述越丰富、越贴近主题，分数越高。分数 ≥ <b>600 / 1000</b> 即可进入下一关。
+    </div>
 
-<div class="wrap">
-<h1>Word Dungeon - 地牢 49 关描述闯关</h1>
-<div class="info">
-描述随机图片，只要 ≥ 600 分即可通关。  
-本游戏共有 <b>7 层 × 7 关 = 49 关</b>。
-</div>
+    <div class="status-row">
+        <div>层数：<b id="floorLabel">1</b> / 7</div>
+        <div>关卡：<b id="roomLabel">1</b> / 7</div>
+        <div>已通关：<b id="clearedLabel">0</b> / 49</div>
+        <div id="badge" class="badge">未评分</div>
+    </div>
 
-<div class="status">
-    <div>层数：<b id="floorDisplay">1</b> / 7</div>
-    <div>关卡：<b id="roomDisplay">1</b> / 7</div>
-    <div class="badge" id="passBadge" style="background:#333;">未评分</div>
-</div>
+    <div class="progress">
+        <div id="progressInner" class="progress-inner"></div>
+    </div>
 
-<img id="sceneImg" class="scene-img" src="">
+    <div class="layout">
+        <div class="left">
+            <img id="sceneImg" class="scene-img" src="" alt="Scene">
+            <div id="hintBox" class="hint-box"></div>
+        </div>
+        <div class="right">
+            <div class="label">请描述图片（英文或德语）：</div>
+            <textarea id="desc" placeholder="可以写：人物、地点、时间、动作、原因、感受等。至少 2–3 句。"></textarea>
+            <div class="textarea-hint">
+                小技巧：先写一句总的描述，再写 2–3 句细节（谁 / 在哪里 / 做什么 / 为什么 / 心情如何），分数会明显提高。
+            </div>
+            <div class="btn-row">
+                <button class="btn-primary" id="scoreBtn">评分</button>
+                <button class="btn-secondary" id="nextBtn" disabled>下一关 ▶</button>
+                <button class="btn-secondary" id="retryBtn">重抽图片</button>
+            </div>
+            <div id="scoreBox" class="score-box" style="display:none;">
+                本关得分：<span id="scoreValue" class="score-value"></span> / 1000
+                <div id="scoreMsg" class="score-msg"></div>
+                <div style="margin-top:6px;font-size:0.8rem;color:#9ca3af;">
+                    评分规则（简化版）：<br>
+                    · 描述越长、信息越丰富：最多约 700 分<br>
+                    · 命中本关主题关键词（英文）越多：最多约 300 分<br>
+                    · 不需要完美语法，只要内容合理、有细节，就能轻松过 600。
+                </div>
+            </div>
+        </div>
+    </div>
 
-<div id="hintBox" style="color:#888; font-size:0.9rem;"></div>
-
-<label>请描述图片（英文或德语）：</label>
-<textarea id="desc"></textarea>
-
-<button class="btn-main" onclick="score()">评分</button>
-<button class="btn-next" id="nextBtn" onclick="next()" disabled>下一关 ▶</button>
-
-<div id="scoreBox" class="score-box" style="display:none;">
-    得分：<span id="scoreValue" class="score-value"></span> / 1000
-    <div id="scoreMsg"></div>
-</div>
-
+    <div class="footer-note">
+        提示：以后你可以把每一层改成德语考试的不同主题（学校、工作、健康、旅行……），<br>
+        这样每天玩一会儿，就在刷 B1/B2 写作和口语素材。
+    </div>
 </div>
 
 <script>
-// 7 层 × 7 关主题
-const topics = [
-    ["girl,dog,park","office,team,work","train,station","kitchen,cooking","city,street","shopping,market","classroom,school"],
-    ["restaurant,food","night,city","library,books","beach,sea","mountain,hiking","forest,path","bicycle,road"],
-    ["doctor,hospital","airport,travel","sports,running","family,home","computer,desk","coffee,cafe","winter,snow"],
-    ["music,concert","gym,fitness","swimming,pool","hotel,room","bus,transport","subway,metro","farm,animals"],
-    ["lake,boat","bridge,river","sunset,sky","food,cooking","museum,art","garden,flowers","car,traffic"],
-    ["students,study","train,platform","office,work","store,supermarket","kitchen,chef","football,soccer","city,night"],
-    ["fantasy,dungeon","magic,castle","dragon,fire","dark,forest","knight,armor","village,market","battle,warrior"]
-];
+    // 7 层 × 7 关：每关一个英文主题标签 + 中文提示
+    const dungeon = [
+        [   // Floor 1 日常生活
+            { slug: "girl,dog,park",        hint: "女孩 / 小狗 / 公园 / 草地 / 玩耍" },
+            { slug: "family,livingroom",    hint: "家庭 / 客厅 / 沙发 / 聊天 / 电视" },
+            { slug: "kitchen,cooking",      hint: "厨房 / 做饭 / 锅碗瓢盆 / 准备食物" },
+            { slug: "shopping,market",      hint: "超市 / 购物车 / 货架 / 结账" },
+            { slug: "street,people,day",    hint: "街道 / 行人 / 白天 / 车辆" },
+            { slug: "playground,children",  hint: "游乐场 / 小孩 / 秋千 / 滑梯" },
+            { slug: "bedroom,reading",      hint: "卧室 / 书 / 床 / 阅读 / 放松" }
+        ],
+        [   // Floor 2 学校 & 学习
+            { slug: "classroom,students",   hint: "教室 / 学生 / 老师 / 黑板" },
+            { slug: "library,books,study",  hint: "图书馆 / 书架 / 自习 / 安静" },
+            { slug: "exam,desk,school",     hint: "考试 / 课桌 / 卷子 / 紧张" },
+            { slug: "schoolyard,friends",   hint: "操场 / 同学 / 聊天 / 休息" },
+            { slug: "computer,online,study",hint: "电脑 / 网课 / 远程学习" },
+            { slug: "science,lab,students", hint: "实验室 / 白大褂 / 实验" },
+            { slug: "graduation,cap,gown",  hint: "毕业 / 学士服 / 合影 / 庆祝" }
+        ],
+        [   // Floor 3 城市 & 交通
+            { slug: "train,station,travel", hint: "火车 / 车站 / 行李 / 月台" },
+            { slug: "bus,stop,people",      hint: "公交车 / 车站牌 / 等车" },
+            { slug: "subway,metro,city",    hint: "地铁 / 车厢 / 人群" },
+            { slug: "airport,airplane",     hint: "机场 / 飞机 / 登机口 / 安检" },
+            { slug: "bicycle,road,city",    hint: "自行车 / 自行车道 / 城市" },
+            { slug: "traffic,jam,cars",     hint: "堵车 / 高速 / 很多车" },
+            { slug: "night,city,lights",    hint: "城市夜景 / 霓虹灯 / 高楼" }
+        ],
+        [   // Floor 4 工作 & 职业
+            { slug: "office,team,meeting",  hint: "办公室 / 会议 / 讨论" },
+            { slug: "restaurant,chef,kitchen",hint:"餐厅 / 厨师 / 后厨 / 烹饪" },
+            { slug: "factory,workers,machine",hint:"工厂 / 机器 / 工人 / 生产线" },
+            { slug: "hospital,doctor,nurse",hint:"医院 / 医生 / 护士 / 病人" },
+            { slug: "construction,workers", hint:"工地 / 安全帽 / 建楼" },
+            { slug: "hotel,reception,lobby",hint:"酒店 / 前台 / 大厅" },
+            { slug: "police,street,car",    hint:"警察 / 巡逻车 / 街道" }
+        ],
+        [   // Floor 5 休闲 & 自然
+            { slug: "beach,sea,holiday",    hint:"海边 / 沙滩 / 度假" },
+            { slug: "mountain,hiking,path", hint:"山 / 徒步 / 小路 / 背包" },
+            { slug: "forest,trees,sunlight",hint:"森林 / 阳光 / 树林" },
+            { slug: "park,jogging,sport",   hint:"公园 / 跑步 / 锻炼" },
+            { slug: "lake,boat,relax",      hint:"湖 / 小船 / 放松" },
+            { slug: "camping,tent,night",   hint:"露营 / 帐篷 / 星星 / 篝火" },
+            { slug: "snow,winter,play",     hint:"雪 / 冬天 / 打雪仗 / 堆雪人" }
+        ],
+        [   // Floor 6 健康 & 日常服务
+            { slug: "gym,fitness,training", hint:"健身房 / 器械 / 训练" },
+            { slug: "pharmacy,medicine",    hint:"药店 / 药品 / 货架" },
+            { slug: "dentist,clinic",       hint:"牙医 / 诊所 / 椅子" },
+            { slug: "hairdresser,salon",    hint:"理发店 / 理发师 / 剪头发" },
+            { slug: "supermarket,shopping", hint:"超市 / 买菜 / 收银台" },
+            { slug: "market,fruit,vegetable",hint:"菜市场 / 水果 / 蔬菜" },
+            { slug: "cleaning,housework",   hint:"打扫卫生 / 吸尘器 / 做家务" }
+        ],
+        [   // Floor 7 奇幻 & 冒险（真正地牢）
+            { slug: "fantasy,dungeon,torch",hint:"地牢 / 火把 / 石墙 / 阴暗" },
+            { slug: "castle,night,moon",    hint:"城堡 / 月亮 / 夜晚" },
+            { slug: "dragon,fire,sky",      hint:"巨龙 / 火焰 / 战斗" },
+            { slug: "knight,armor,sword",   hint:"骑士 / 盔甲 / 长剑" },
+            { slug: "magic,spell,wizard",   hint:"魔法 / 法师 / 光芒" },
+            { slug: "village,market,people",hint:"村庄 / 集市 / 村民" },
+            { slug: "battle,warrior,field", hint:"战场 / 战士 / 冲锋" }
+        ]
+    ];
 
-// 每关关键词 = topic 拆成数组
-function keywordsFrom(topic) {
-    return topic.split(","); 
-}
+    const totalFloors = dungeon.length;
+    const roomsPerFloor = dungeon[0].length;
+    const totalRooms = totalFloors * roomsPerFloor;
 
-let floor = 0; // 0~6
-let room = 0;  // 0~6
+    let floorIndex = 0; // 0–6
+    let roomIndex  = 0; // 0–6
+    let clearedCount = 0;
 
-function loadStage() {
-    const topic = topics[floor][room];
-    document.getElementById("floorDisplay").innerText = floor+1;
-    document.getElementById("roomDisplay").innerText = room+1;
+    const floorLabel   = document.getElementById("floorLabel");
+    const roomLabel    = document.getElementById("roomLabel");
+    const clearedLabel = document.getElementById("clearedLabel");
+    const badge        = document.getElementById("badge");
+    const progressBar  = document.getElementById("progressInner");
+    const sceneImg     = document.getElementById("sceneImg");
+    const hintBox      = document.getElementById("hintBox");
+    const descInput    = document.getElementById("desc");
+    const scoreBox     = document.getElementById("scoreBox");
+    const scoreValueEl = document.getElementById("scoreValue");
+    const scoreMsgEl   = document.getElementById("scoreMsg");
+    const scoreBtn     = document.getElementById("scoreBtn");
+    const nextBtn      = document.getElementById("nextBtn");
+    const retryBtn     = document.getElementById("retryBtn");
 
-    // 生成随机图片
-    const url = "https://source.unsplash.com/random/800x600/?" + topic;
-    document.getElementById("sceneImg").src = url;
-
-    document.getElementById("passBadge").innerText = "未评分";
-    document.getElementById("passBadge").style.background = "#333";
-
-    document.getElementById("desc").value = "";
-    document.getElementById("scoreBox").style.display = "none";
-    document.getElementById("nextBtn").disabled = true;
-
-    document.getElementById("hintBox").innerHTML = 
-        "本关主题关键词：" + topic.replace(/,/g, ", ");
-}
-
-function score() {
-    const text = document.getElementById("desc").value.toLowerCase().trim();
-    const keys = keywordsFrom(topics[floor][room]);
-
-    if (text.length < 10) {
-        alert("写太少了，多写几句！");
-        return;
+    function buildImageUrl(slug) {
+        // 使用 loremflickr，通常在国内也能访问。
+        // random 参数保证不同关卡图片不同。
+        const key = floorIndex * roomsPerFloor + roomIndex + 1;
+        return "https://loremflickr.com/800/500/" + encodeURIComponent(slug) + "?random=" + key;
     }
 
-    let match = 0;
-    for (let k of keys) {
-        if (text.includes(k)) match++;
+    function updateProgress() {
+        const idx = floorIndex * roomsPerFloor + roomIndex;
+        const percent = (idx / (totalRooms - 1)) * 100;
+        progressBar.style.width = percent + "%";
     }
 
-    let keywordScore = Math.min(600, match / keys.length * 600);
-    let lengthScore = Math.min(300, text.length * 1.5);
-    let logic = match >= Math.ceil(keys.length / 2) ? 100 : 0;
+    function loadRoom(resetImage = true) {
+        const room = dungeon[floorIndex][roomIndex];
 
-    let total = Math.min(1000, Math.round(keywordScore + lengthScore + logic));
+        floorLabel.textContent   = floorIndex + 1;
+        roomLabel.textContent    = roomIndex + 1;
+        clearedLabel.textContent = clearedCount;
 
-    const pass = total >= 600;
+        badge.textContent = "未评分";
+        badge.className   = "badge";
 
-    document.getElementById("scoreBox").style.display = "block";
-    document.getElementById("scoreValue").innerText = total;
-    document.getElementById("scoreValue").className = pass ? "score-value good" : "score-value bad";
+        if (resetImage) {
+            sceneImg.src = buildImageUrl(room.slug);
+        }
 
-    document.getElementById("scoreMsg").innerHTML = pass
-        ? "🎉 通过！你可以进入下一关。"
-        : "分数不足 600，再写得更具体、更多情节！";
+        hintBox.innerHTML =
+            "本关主题英文标签：<b>" + room.slug.replace(/,/g, ", ") +
+            "</b><br>可以尝试在描述中包含这些意思：<span style='color:#e5e7eb;'>" +
+            room.hint +
+            "</span>";
 
-    document.getElementById("passBadge").innerText = pass ? "已通过" : "未通过";
-    document.getElementById("passBadge").style.background = pass ? "#1f8c5c" : "#552222";
+        descInput.value = "";
+        scoreBox.style.display = "none";
+        nextBtn.disabled = true;
 
-    if (pass) document.getElementById("nextBtn").disabled = false;
-}
+        updateProgress();
+    }
 
-function next() {
-    if (room < 6) room++;
-    else {
-        if (floor < 6) {
-            floor++;
-            room = 0;
-        } else {
-            alert("🎉 恭喜你！你已通关全部 49 关！");
+    function getKeywords(room) {
+        return room.slug.split(",");
+    }
+
+    function evaluateScore() {
+        const raw = descInput.value.trim();
+        const text = raw.toLowerCase();
+
+        if (raw.length < 20) {
+            alert("写得有点太少啦，至少写两三句，再试一次。");
             return;
         }
+
+        const room = dungeon[floorIndex][roomIndex];
+        const keywords = getKeywords(room);
+
+        // 命中多少英文关键词
+        let hits = 0;
+        for (const kw of keywords) {
+            if (kw && text.includes(kw.toLowerCase())) {
+                hits++;
+            }
+        }
+
+        // 描述长度分：最多约 700 分（350 字左右）
+        const lengthScore = Math.min(700, raw.length * 2);
+
+        // 关键词分：最多 300 分
+        const keywordScore = Math.min(300, hits / keywords.length * 300);
+
+        let total = Math.round(lengthScore + keywordScore);
+        if (total > 1000) total = 1000;
+
+        const passed = total >= 600;
+
+        scoreBox.style.display = "block";
+        scoreValueEl.textContent = total;
+        scoreValueEl.className = "score-value " + (passed ? "score-good" : "score-bad");
+
+        if (passed) {
+            scoreMsgEl.innerHTML =
+                "🎉 恭喜通关！你可以点击「下一关」继续深入地牢。<br>" +
+                "如果想挑战高分，可以尝试：增加原因、感受、细节描写，比如时间、天气、人物关系等。";
+            badge.textContent = "已通关";
+            badge.className   = "badge badge-pass";
+            nextBtn.disabled  = false;
+
+            // 如果是第一次过这关，增加通关计数
+            // 这里简单处理：每次通过就 +1（刷新后不记忆）
+            clearedCount++;
+            clearedLabel.textContent = clearedCount;
+        } else {
+            scoreMsgEl.innerHTML =
+                "当前分数还没到 600，可以多写一点、写得更具体：<br>" +
+                "· 尝试提到人物在做什么、在哪里、为什么在这里；<br>" +
+                "· 看下方提示中的中文关键词，适当用英文/德语表达出来。";
+            badge.textContent = "未通关";
+            badge.className   = "badge badge-fail";
+        }
     }
-    loadStage();
-}
 
-loadStage();
+    function goNext() {
+        if (roomIndex < roomsPerFloor - 1) {
+            roomIndex++;
+        } else {
+            if (floorIndex < totalFloors - 1) {
+                floorIndex++;
+                roomIndex = 0;
+            } else {
+                alert("🎉 你已经通关全部 49 关！可以刷新页面重来一轮，或者自己改代码增加新关卡。");
+                return;
+            }
+        }
+        loadRoom(true);
+    }
+
+    function redrawImage() {
+        // 保持同一关，但重新抽一张图
+        const room = dungeon[floorIndex][roomIndex];
+        sceneImg.src = buildImageUrl(room.slug + ",scene");
+    }
+
+    scoreBtn.addEventListener("click", evaluateScore);
+    nextBtn.addEventListener("click", goNext);
+    retryBtn.addEventListener("click", redrawImage);
+
+    // 初始化
+    loadRoom(true);
 </script>
-
 </body>
 </html>
