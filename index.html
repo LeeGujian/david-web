@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>World Choice – 选择你的网络国家（全球版）</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="UTF-8" />
+  <title>Word Dungeon · Image Description Challenge</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
     * { box-sizing: border-box; }
     body {
@@ -14,7 +14,7 @@
       color: #e5e7eb;
     }
     .wrapper {
-      max-width: 1120px;
+      max-width: 960px;
       margin: 24px auto;
       padding: 20px;
       border-radius: 18px;
@@ -33,386 +33,604 @@
       color: #9ca3af;
       margin-bottom: 18px;
     }
+    .status-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.9rem;
+      margin-bottom: 10px;
+    }
+    .badge {
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 0.8rem;
+      border: 1px solid rgba(148,163,184,0.7);
+      background: rgba(15,23,42,0.8);
+    }
+    .badge-pass {
+      border-color: rgba(34,197,94,0.9);
+      background: rgba(22,163,74,0.18);
+      color: #bbf7d0;
+    }
+    .badge-fail {
+      border-color: rgba(248,113,113,0.9);
+      background: rgba(248,113,113,0.18);
+      color: #fecaca;
+    }
+    .badge-diff {
+      border-color: rgba(96,165,250,0.9);
+      background: rgba(37,99,235,0.22);
+      color: #dbeafe;
+    }
+    .progress {
+      width: 100%;
+      height: 10px;
+      border-radius: 999px;
+      background: #020617;
+      overflow: hidden;
+      margin-bottom: 12px;
+    }
+    .progress-inner {
+      height: 100%;
+      width: 0;
+      background: linear-gradient(90deg, #22c55e, #eab308, #ef4444);
+      transition: width .3s ease-out;
+    }
     .layout {
       display: flex;
       flex-wrap: wrap;
       gap: 18px;
     }
-    .col {
-      flex: 1 1 320px;
+    .left, .right {
+      flex: 1 1 300px;
       min-width: 0;
     }
-    h2 {
-      font-size: 1.1rem;
-      margin: 0 0 10px;
-    }
-    .country-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-      gap: 10px;
-    }
-    .country-card {
+    .scene-box {
       border-radius: 14px;
       border: 1px solid rgba(55,65,81,0.9);
-      background: rgba(15,23,42,0.9);
+      background: linear-gradient(135deg, #0f172a, #111827);
       padding: 10px;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      transition: transform 0.1s ease-out, box-shadow 0.1s ease-out, border-color 0.1s;
-    }
-    .country-card:hover {
-      transform: translateY(-1px);
-      box-shadow: 0 8px 20px rgba(0,0,0,0.5);
-      border-color: rgba(59,130,246,0.9);
-    }
-    .country-card.active {
-      border-color: rgba(59,130,246,1);
-      box-shadow: 0 0 0 1px rgba(59,130,246,0.8);
-      background: radial-gradient(circle at top, rgba(37,99,235,0.35), rgba(15,23,42,0.95));
-    }
-    .flag {
-      font-size: 1.4rem;
-    }
-    .country-info {
+      height: 260px;
       display: flex;
       flex-direction: column;
-      gap: 2px;
+      justify-content: space-between;
     }
-    .country-name {
+    .scene-title {
       font-size: 0.95rem;
+      color: #e5e7eb;
+      margin-bottom: 4px;
     }
-    .country-tagline {
+    .scene-theme {
+      font-size: 1.4rem;
+      font-weight: 600;
+    }
+    .scene-sub {
+      font-size: 0.85rem;
+      color: #9ca3af;
+      margin-top: 4px;
+    }
+    .scene-footer {
       font-size: 0.8rem;
       color: #9ca3af;
+      margin-top: 8px;
     }
-    .my-choice-box {
-      margin-top: 12px;
-      padding: 10px 12px;
-      border-radius: 14px;
-      background: rgba(15,23,42,0.9);
-      border: 1px solid rgba(75,85,99,0.9);
-      font-size: 0.9rem;
-    }
-    .my-choice-box b {
-      font-size: 1rem;
-    }
-    .stats-box {
-      border-radius: 14px;
-      background: rgba(3,7,18,0.9);
-      border: 1px solid rgba(75,85,99,0.9);
-      padding: 10px 12px;
-      font-size: 0.9rem;
-    }
-    .stats-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 8px;
+    .hint-box {
+      margin-top: 8px;
       font-size: 0.85rem;
       color: #9ca3af;
     }
-    .total-number {
-      font-weight: 600;
+    .hint-keywords {
+      margin-top: 4px;
+      font-size: 0.85rem;
       color: #e5e7eb;
     }
-    .ranking-list {
-      list-style: none;
-      padding: 0;
-      margin: 0;
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-      max-height: 380px;
-      overflow: auto;
-    }
-    .ranking-item {
-      display: flex;
-      flex-direction: column;
-      gap: 2px;
-      padding: 6px 8px;
-      border-radius: 10px;
-      background: rgba(15,23,42,0.95);
-      border: 1px solid rgba(31,41,55,1);
-    }
-    .ranking-top1 {
-      border-color: rgba(250,204,21,1);
-      background: radial-gradient(circle at top, rgba(250,204,21,0.18), rgba(15,23,42,0.98));
-    }
-    .ranking-top2 {
-      border-color: rgba(96,165,250,1);
-    }
-    .ranking-top3 {
-      border-color: rgba(52,211,153,1);
-    }
-    .ranking-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 8px;
+    .label {
       font-size: 0.9rem;
+      margin-bottom: 4px;
     }
-    .ranking-left {
-      display: flex;
-      align-items: center;
-      gap: 6px;
+    textarea {
+      width: 100%;
+      min-height: 170px;
+      border-radius: 14px;
+      border: 1px solid rgba(55,65,81,0.9);
+      background: rgba(15,23,42,0.9);
+      color: #e5e7eb;
+      padding: 10px 12px;
+      font-size: 0.9rem;
+      resize: vertical;
     }
-    .rank-number {
-      width: 20px;
-      text-align: right;
+    textarea:focus {
+      outline: none;
+      border-color: #3b82f6;
+      box-shadow: 0 0 0 1px rgba(59,130,246,0.8);
+    }
+    .textarea-hint {
       font-size: 0.8rem;
       color: #9ca3af;
+      margin-top: 4px;
     }
-    .rank-flag {
-      font-size: 1.1rem;
+    .btn-row {
+      margin-top: 10px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
     }
-    .rank-name {
-      font-size: 0.9rem;
-    }
-    .rank-count {
-      font-size: 0.9rem;
-      font-variant-numeric: tabular-nums;
-    }
-    .progress-bar {
-      height: 6px;
+    button {
       border-radius: 999px;
-      background: #020617;
-      overflow: hidden;
-      margin-top: 2px;
+      border: none;
+      padding: 8px 16px;
+      font-size: 0.9rem;
+      cursor: pointer;
     }
-    .progress-inner {
-      height: 100%;
-      width: 0;
-      border-radius: 999px;
-      background: linear-gradient(90deg, #22c55e, #eab308, #ef4444);
-      transition: width 0.2s;
+    .btn-primary {
+      background: linear-gradient(90deg, #3b82f6, #22c55e);
+      color: #f9fafb;
     }
-    .note {
-      margin-top: 8px;
-      font-size: 0.78rem;
+    .btn-secondary {
+      background: rgba(17,24,39,0.9);
+      color: #e5e7eb;
+      border: 1px solid rgba(75,85,99,0.9);
+    }
+    .btn-secondary:disabled,
+    .btn-primary:disabled {
+      opacity: .45;
+      cursor: not-allowed;
+    }
+    .panels {
+      margin-top: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      font-size: 0.85rem;
+    }
+    .panel {
+      border-radius: 12px;
+      padding: 8px 10px;
+      background: rgba(3,7,18,0.9);
+      border: 1px solid rgba(31,41,55,1);
+    }
+    .panel-title {
+      font-weight: 600;
+      margin-bottom: 4px;
+      font-size: 0.86rem;
+    }
+    .score-big {
+      font-size: 1.4rem;
+      font-weight: 700;
+    }
+    .score-pass { color: #4ade80; }
+    .score-fail { color: #f97373; }
+    ul {
+      margin: 4px 0 0 18px;
+      padding: 0;
+    }
+    .footer-note {
+      margin-top: 18px;
+      font-size: 0.8rem;
       color: #9ca3af;
+      text-align: center;
     }
-    @media (max-width: 768px) {
+    @media (max-width: 640px) {
       .wrapper { margin: 10px; padding: 14px; }
     }
   </style>
-  <!-- Firebase compat SDK（用 CDN 就行） -->
-  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
 </head>
 <body>
 <div class="wrapper">
-  <h1>World Choice · 选择你的网络国家（全球版）</h1>
+  <h1>Word Dungeon · Image Description Challenge</h1>
   <div class="subtitle">
-    在这个网站上，你可以选择一个你想加入的“网络国家”，成为它的公民。<br>
-    所有访问者的选择都会存入云端数据库，形成一个真实的“全球人气排行榜”。
+    7 floors, each with 7 rooms. In every room you see a scenario and write a description in English (or German).<br>
+    The more detailed, logical and relevant your text is, the higher your score (0–1000). You need ≥ <b>600</b> to pass.
+  </div>
+
+  <div class="status-row">
+    <div>Floor: <b id="floorLabel">1</b> / 7</div>
+    <div>Room: <b id="roomLabel">1</b> / 7</div>
+    <div>Cleared rooms: <b id="clearedLabel">0</b> / 49</div>
+    <div id="badge" class="badge">Not evaluated</div>
+  </div>
+
+  <div class="progress">
+    <div id="progressInner" class="progress-inner"></div>
   </div>
 
   <div class="layout">
-    <!-- 左边：选择国家 -->
-    <div class="col">
-      <h2>① 选择你的国家</h2>
-      <div id="countryGrid" class="country-grid"></div>
-      <div id="myChoiceBox" class="my-choice-box">
-        你还没有选择国家。点击上面的任意卡片来选择，你可以随时更换。
+    <div class="left">
+      <div class="scene-box" id="sceneBox">
+        <div>
+          <div class="scene-title">Current scene</div>
+          <div class="scene-theme" id="sceneTheme">Everyday life</div>
+          <div class="scene-sub" id="sceneSub">
+            Imagine you are inside this scene and someone asks you: “What is happening here?”.
+          </div>
+        </div>
+        <div class="scene-footer" id="sceneFooter">
+          Tip: Try to describe who is there, what they are doing, where they are, and why they might be there.
+        </div>
+      </div>
+      <div class="hint-box">
+        Scene tags (for relevance):
+        <div class="hint-keywords" id="hintKeywords"></div>
       </div>
     </div>
 
-    <!-- 右边：全球人气统计 -->
-    <div class="col">
-      <h2>② 全球人气排行榜</h2>
-      <div class="stats-box">
-        <div class="stats-header">
-          <span>模拟“全球公民投票”效果</span>
-          <span>总公民数：<span id="totalCitizens" class="total-number">0</span></span>
+    <div class="right">
+      <div class="label">Your description</div>
+      <textarea id="desc" placeholder="Write 3–5 sentences. Focus on people, place, actions, time, reasons and feelings."></textarea>
+      <div class="textarea-hint">
+        Example structure: ① One general sentence about the scene. ② 2–3 detail sentences. ③ Optional: your opinion or guess.
+      </div>
+      <div class="btn-row">
+        <button class="btn-primary" id="scoreBtn">Evaluate &amp; Score</button>
+        <button class="btn-secondary" id="nextBtn" disabled>Next room ▶</button>
+      </div>
+
+      <div class="panels">
+        <div class="panel" id="scorePanel" style="display:none;">
+          <div class="panel-title">Score</div>
+          <div>
+            Total score:
+            <span id="scoreValue" class="score-big">0</span> / 1000
+            (<span id="scoreResultText">not evaluated</span>)
+          </div>
+          <div id="scoreBreakdown"></div>
         </div>
-        <ol id="rankingList" class="ranking-list"></ol>
-        <div class="note">
-          当前数据存储在 Firebase Firestore 中，所有访问你网站的人都会共享同一份数据。<br>
-          （注意：目前没有登录系统，1 个人可以多次换国家，仅用于趣味统计）
+        <div class="panel" id="logicPanel" style="display:none;">
+          <div class="panel-title">Logic &amp; structure feedback</div>
+          <div id="logicFeedback"></div>
+        </div>
+        <div class="panel" id="grammarPanel" style="display:none;">
+          <div class="panel-title">Basic grammar &amp; style hints</div>
+          <div id="grammarFeedback"></div>
+          <div style="margin-top:4px;font-size:0.78rem;color:#9ca3af;">
+            This is only a very simple rule-based checker. For real grammar correction you would need an AI or grammar API.
+          </div>
         </div>
       </div>
     </div>
+  </div>
+
+  <div class="footer-note">
+    You can later replace the “scene box” with real images and connect this game to an AI API for true grammar checking.
   </div>
 </div>
 
 <script>
-  // 1. 先定义国家列表
-  const COUNTRIES = [
-    { code: "DE", name: "Germany",   emoji: "🇩🇪", tagline: "工程、啤酒和哲学" },
-    { code: "US", name: "USA",       emoji: "🇺🇸", tagline: "电影、科技和多元文化" },
-    { code: "CN", name: "China",     emoji: "🇨🇳", tagline: "历史、美食与速度" },
-    { code: "JP", name: "Japan",     emoji: "🇯🇵", tagline: "二次元、职人精神" },
-    { code: "KR", name: "Korea",     emoji: "🇰🇷", tagline: "音乐、电视剧与美食" },
-    { code: "FR", name: "France",    emoji: "🇫🇷", tagline: "浪漫、美酒与艺术" },
-    { code: "IT", name: "Italy",     emoji: "🇮🇹", tagline: "披萨、古迹和阳光" },
-    { code: "ES", name: "Spain",     emoji: "🇪🇸", tagline: "足球、阳光和节日" },
-    { code: "BR", name: "Brazil",    emoji: "🇧🇷", tagline: "足球与热情海滩" },
-    { code: "GB", name: "UK",        emoji: "🇬🇧", tagline: "摇滚、文学与雨" },
-    { code: "CA", name: "Canada",    emoji: "🇨🇦", tagline: "枫叶、湖泊和友善" },
-    { code: "AU", name: "Australia", emoji: "🇦🇺", tagline: "大海、阳光和袋鼠" }
+  // 7 floors × 7 rooms, simplified text-only scenes (you can later attach images)
+  const dungeon = [
+    [ // Floor 1 – Everyday life
+      { theme: "Park with a dog", tags: "girl, dog, park, sunny, playing" },
+      { theme: "Family in the living room", tags: "family, sofa, TV, relaxing" },
+      { theme: "Cooking in the kitchen", tags: "kitchen, cooking, dinner, food" },
+      { theme: "Shopping in a supermarket", tags: "supermarket, trolley, shelves, cashier" },
+      { theme: "Busy street", tags: "street, cars, people, city" },
+      { theme: "Playground", tags: "children, playground, swing, slide" },
+      { theme: "Bedroom evening", tags: "bedroom, reading, lamp, quiet" }
+    ],
+    [ // Floor 2 – School & learning
+      { theme: "Classroom lesson", tags: "classroom, teacher, students, blackboard" },
+      { theme: "Studying in the library", tags: "library, books, table, reading" },
+      { theme: "Writing an exam", tags: "exam, desk, paper, nervous" },
+      { theme: "Break at the school yard", tags: "school yard, friends, chat, rest" },
+      { theme: "Online learning", tags: "computer, online class, headphones" },
+      { theme: "Science lab", tags: "lab, experiment, coat, safety" },
+      { theme: "Graduation day", tags: "graduation, gown, ceremony, photo" }
+    ],
+    [ // Floor 3 – City & transport
+      { theme: "Train station", tags: "train, station, platform, luggage" },
+      { theme: "Bus stop", tags: "bus, stop, waiting, people" },
+      { theme: "Metro ride", tags: "subway, metro, crowd, city" },
+      { theme: "Airport gate", tags: "airport, airplane, boarding, security" },
+      { theme: "Cycling in the city", tags: "bicycle, bike lane, traffic" },
+      { theme: "Traffic jam", tags: "cars, road, traffic jam" },
+      { theme: "Night city lights", tags: "city, night, lights, skyline" }
+    ],
+    [ // Floor 4 – Work & jobs
+      { theme: "Office meeting", tags: "office, meeting, laptop, team" },
+      { theme: "Restaurant kitchen", tags: "chef, kitchen, restaurant, cooking" },
+      { theme: "Factory line", tags: "factory, workers, machines" },
+      { theme: "Hospital corridor", tags: "doctor, nurse, patient, hospital" },
+      { theme: "Construction site", tags: "construction, workers, helmets" },
+      { theme: "Hotel lobby", tags: "hotel, reception, lobby, guests" },
+      { theme: "Police on the street", tags: "police, car, street, patrol" }
+    ],
+    [ // Floor 5 – Free time & nature
+      { theme: "Beach holiday", tags: "beach, sea, vacation, sand" },
+      { theme: "Mountain hike", tags: "mountain, hiking, backpack" },
+      { theme: "Forest walk", tags: "forest, trees, sunlight" },
+      { theme: "Jogging in the park", tags: "park, jogging, exercise" },
+      { theme: "Lake with a boat", tags: "lake, boat, relax" },
+      { theme: "Camping at night", tags: "camping, tent, campfire, stars" },
+      { theme: "Snowy day", tags: "snow, winter, snowman, kids" }
+    ],
+    [ // Floor 6 – Health & services
+      { theme: "Fitness gym", tags: "gym, training, weights" },
+      { theme: "Pharmacy", tags: "pharmacy, medicine, shelves" },
+      { theme: "Dentist", tags: "dentist, clinic, chair" },
+      { theme: "Hair salon", tags: "hairdresser, salon, haircut" },
+      { theme: "Supermarket groceries", tags: "supermarket, food, basket" },
+      { theme: "Local market", tags: "market, fruit, vegetables" },
+      { theme: "Cleaning at home", tags: "cleaning, vacuum, housework" }
+    ],
+    [ // Floor 7 – Fantasy & adventure
+      { theme: "Dark dungeon", tags: "dungeon, torch, stone, dark" },
+      { theme: "Castle at night", tags: "castle, moon, night" },
+      { theme: "Dragon in the sky", tags: "dragon, fire, sky" },
+      { theme: "Knight in armor", tags: "knight, sword, armor" },
+      { theme: "Wizard casting a spell", tags: "wizard, magic, light" },
+      { theme: "Village market", tags: "village, market, people" },
+      { theme: "Battlefield", tags: "battle, warrior, field" }
+    ]
   ];
 
-  // 2. 这里要填你的 Firebase 配置（第 2 步会教你怎么拿到）
-  const firebaseConfig = {
-    // TODO: 用你自己的配置替换这里的内容
-    apiKey: "YOUR_API_KEY",
-    authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-    projectId: "YOUR_PROJECT_ID",
-    storageBucket: "YOUR_PROJECT_ID.appspot.com",
-    messagingSenderId: "YOUR_SENDER_ID",
-    appId: "YOUR_APP_ID"
-  };
+  const totalFloors = dungeon.length;
+  const roomsPerFloor = dungeon[0].length;
+  const totalRooms = totalFloors * roomsPerFloor;
 
-  // 3. 初始化 Firebase
-  firebase.initializeApp(firebaseConfig);
-  const db = firebase.firestore();
+  let floorIndex = 0;
+  let roomIndex = 0;
+  let clearedCount = 0;
 
-  const countryGrid   = document.getElementById("countryGrid");
-  const myChoiceBox   = document.getElementById("myChoiceBox");
-  const rankingList   = document.getElementById("rankingList");
-  const totalCitizens = document.getElementById("totalCitizens");
+  const floorLabel = document.getElementById("floorLabel");
+  const roomLabel = document.getElementById("roomLabel");
+  const clearedLabel = document.getElementById("clearedLabel");
+  const badge = document.getElementById("badge");
+  const progressInner = document.getElementById("progressInner");
+  const sceneThemeEl = document.getElementById("sceneTheme");
+  const sceneSubEl = document.getElementById("sceneSub");
+  const sceneFooterEl = document.getElementById("sceneFooter");
+  const hintKeywordsEl = document.getElementById("hintKeywords");
 
-  let myCountryCode = localStorage.getItem("myCountryCode") || null;
+  const descInput = document.getElementById("desc");
+  const scoreBtn = document.getElementById("scoreBtn");
+  const nextBtn = document.getElementById("nextBtn");
 
-  // 渲染国家卡片
-  function renderCountryGrid() {
-    countryGrid.innerHTML = "";
-    COUNTRIES.forEach(c => {
-      const card = document.createElement("div");
-      card.className = "country-card";
-      card.dataset.code = c.code;
+  const scorePanel = document.getElementById("scorePanel");
+  const scoreValueEl = document.getElementById("scoreValue");
+  const scoreResultTextEl = document.getElementById("scoreResultText");
+  const scoreBreakdownEl = document.getElementById("scoreBreakdown");
 
-      if (myCountryCode === c.code) {
-        card.classList.add("active");
-      }
+  const logicPanel = document.getElementById("logicPanel");
+  const logicFeedbackEl = document.getElementById("logicFeedback");
+  const grammarPanel = document.getElementById("grammarPanel");
+  const grammarFeedbackEl = document.getElementById("grammarFeedback");
 
-      card.innerHTML = `
-        <div class="flag">${c.emoji}</div>
-        <div class="country-info">
-          <div class="country-name">${c.name}</div>
-          <div class="country-tagline">${c.tagline}</div>
-        </div>
-      `;
-
-      card.addEventListener("click", () => selectCountry(c.code));
-      countryGrid.appendChild(card);
-    });
-
-    updateMyChoiceText();
+  function updateProgress() {
+    const idx = floorIndex * roomsPerFloor + roomIndex;
+    const percent = (idx / (totalRooms - 1)) * 100;
+    progressInner.style.width = percent + "%";
   }
 
-  function updateMyChoiceText() {
-    if (!myCountryCode) {
-      myChoiceBox.innerHTML = "你还没有选择国家。点击上面的任意卡片来选择，你可以随时更换。";
+  function loadRoom() {
+    const room = dungeon[floorIndex][roomIndex];
+    floorLabel.textContent = floorIndex + 1;
+    roomLabel.textContent = roomIndex + 1;
+    clearedLabel.textContent = clearedCount;
+
+    sceneThemeEl.textContent = room.theme;
+    sceneSubEl.textContent = "Use your imagination: describe this scene as if it were a photo in front of you.";
+    sceneFooterEl.textContent = "Try to answer: Who is here? Where? What are they doing? Why? How do they feel?";
+
+    hintKeywordsEl.textContent = room.tags;
+
+    badge.textContent = "Not evaluated";
+    badge.className = "badge";
+
+    descInput.value = "";
+    scorePanel.style.display = "none";
+    logicPanel.style.display = "none";
+    grammarPanel.style.display = "none";
+    nextBtn.disabled = true;
+
+    updateProgress();
+  }
+
+  function splitSentences(text) {
+    return text
+      .split(/[\.\!\?]+/)
+      .map(s => s.trim())
+      .filter(s => s.length > 0);
+  }
+
+  function tokenise(text) {
+    return text
+      .split(/\s+/)
+      .map(w => w.trim())
+      .filter(w => w.length > 0);
+  }
+
+  function evaluateDescription() {
+    const raw = descInput.value.trim();
+    const lower = raw.toLowerCase();
+
+    if (raw.length < 20) {
+      alert("Your text is very short. Please write at least 2–3 sentences.");
       return;
     }
-    const c = COUNTRIES.find(x => x.code === myCountryCode);
-    if (!c) {
-      myChoiceBox.innerHTML = "当前选择的国家已不存在，请重新选择。";
-      return;
+
+    const room = dungeon[floorIndex][roomIndex];
+    const keywords = room.tags.split(",").map(k => k.trim().toLowerCase()).filter(Boolean);
+
+    const words = tokenise(lower);
+    const wordCount = words.length;
+    const uniqueWordCount = new Set(words).size;
+
+    const sentences = splitSentences(raw);
+    const sentenceCount = sentences.length;
+
+    // --- relevance score (0–300) ---
+    let hits = 0;
+    keywords.forEach(kw => {
+      if (kw && lower.includes(kw)) hits++;
+    });
+    const relevanceScore = Math.min(300, (hits / Math.max(1, keywords.length)) * 300);
+
+    // --- content / richness score (0–400) ---
+    // more words + more unique words = better
+    const lengthScore = Math.min(250, wordCount * 5);        // ~50 words → 250
+    const varietyScore = Math.min(150, uniqueWordCount * 5); // ~30 unique words → 150
+    const contentScore = lengthScore + varietyScore;         // max 400
+
+    // --- structure / logic score (0–250) ---
+    let structureScore = 0;
+    const connectors = ["and", "but", "because", "when", "while", "although", "however", "so", "therefore", "then", "if"];
+    let connectorHits = 0;
+    connectors.forEach(c => {
+      if (lower.includes(" " + c + " ")) connectorHits++;
+    });
+
+    // sentence count: 1 sentence = weak, 3–6 = good
+    if (sentenceCount >= 3 && sentenceCount <= 6) {
+      structureScore += 130;
+    } else if (sentenceCount === 2 || sentenceCount === 7) {
+      structureScore += 90;
+    } else {
+      structureScore += 50;
     }
-    myChoiceBox.innerHTML = `
-      你当前的网络国籍是：<b>${c.emoji} ${c.name}</b><br>
-      如果你再次点击其他国家，你会自动从原国家“迁出”，加入新的国家。
+
+    // connectors
+    if (connectorHits >= 3) structureScore += 120;
+    else if (connectorHits === 2) structureScore += 80;
+    else if (connectorHits === 1) structureScore += 40;
+
+    if (structureScore > 250) structureScore = 250;
+
+    // --- basic grammar / style hints (rule-based) ---
+    const grammarHints = [];
+
+    // 1. punctuation at the end
+    if (!/[.!?]\s*$/.test(raw)) {
+      grammarHints.push("It looks like your text does not end with a full stop, question mark or exclamation mark. Try to finish sentences properly.");
+    }
+
+    // 2. no punctuation at all
+    if (!/[.!?]/.test(raw)) {
+      grammarHints.push("I cannot see any sentence-ending punctuation ('.', '!' or '?'). Try to split your ideas into clear sentences.");
+    }
+
+    // 3. lowercase 'i' as a pronoun in English
+    if (/\bi\b/.test(lower)) {
+      grammarHints.push("In English, the pronoun 'I' should always be capitalized.");
+    }
+
+    // 4. double spaces
+    if (raw.includes("  ")) {
+      grammarHints.push("There seem to be double spaces. Try to keep only one space between words.");
+    }
+
+    // 5. repeated 'the the'
+    if (/\bthe\s+the\b/i.test(raw)) {
+      grammarHints.push("I found 'the the'. That is usually a typo – remove one 'the'.");
+    }
+
+    // 6. very short sentences
+    const veryShortSentences = sentences.filter(s => tokenise(s).length < 4).length;
+    if (veryShortSentences >= 2) {
+      grammarHints.push("Some of your sentences are extremely short. Try to add more details to each sentence.");
+    }
+
+    // 7. possible missing verb (VERY rough check)
+    const simpleVerbs = ["is", "are", "was", "were", "have", "has", "do", "does", "did", "play", "go", "goes", "went", "see", "sees", "saw", "eat", "eats", "ate"];
+    const maybeNoVerb = sentences.filter(s => {
+      const w = tokenise(s.toLowerCase());
+      return w.length >= 3 && !w.some(x => simpleVerbs.includes(x));
+    }).length;
+    if (maybeNoVerb >= 1) {
+      grammarHints.push("At least one sentence might not contain a clear verb. Check if every sentence has an action word.");
+    }
+
+    // Grammar penalty: up to -150
+    const grammarPenalty = Math.min(150, grammarHints.length * 40);
+
+    // total score
+    let totalScore = Math.round(relevanceScore + contentScore + structureScore - grammarPenalty);
+    if (totalScore < 0) totalScore = 0;
+    if (totalScore > 1000) totalScore = 1000;
+
+    const passed = totalScore >= 600;
+
+    // --- update UI ---
+    scorePanel.style.display = "block";
+    logicPanel.style.display = "block";
+    grammarPanel.style.display = "block";
+
+    scoreValueEl.textContent = totalScore;
+    scoreValueEl.className = "score-big " + (passed ? "score-pass" : "score-fail");
+    scoreResultTextEl.textContent = passed ? "PASS" : "NOT PASS";
+
+    scoreBreakdownEl.innerHTML = `
+      <div>Relevance (keywords): ${Math.round(relevanceScore)} / 300</div>
+      <div>Content &amp; richness: ${Math.round(contentScore)} / 400</div>
+      <div>Structure &amp; logic: ${Math.round(structureScore)} / 250</div>
+      <div>Grammar penalty: −${Math.round(grammarPenalty)} (based on simple rule checks)</div>
     `;
-  }
 
-  // 选择国家：更新 Firestore + 本地状态
-  async function selectCountry(newCode) {
-    if (!firebase.apps.length) return;
+    // logic feedback
+    const logicParts = [];
+    logicParts.push(`• Sentences: ${sentenceCount} (3–6 is ideal for this game).`);
+    logicParts.push(`• Total words: ${wordCount} (more words usually mean more details).`);
+    logicParts.push(`• Unique words: ${uniqueWordCount} (variety makes the text richer).`);
 
-    const oldCode = myCountryCode;
-    if (oldCode === newCode) {
-      // 已经是这个国家了，不用重复操作
-      return;
+    if (sentenceCount < 3) {
+      logicParts.push("→ Try to write at least 3 sentences: one general sentence and a few detail sentences.");
+    } else if (sentenceCount > 7) {
+      logicParts.push("→ You wrote many sentences. That is great, but you can also combine some of them using connectors like 'because', 'when', or 'however'.");
     }
 
-    // 乐观 UI：先更新前端
-    myCountryCode = newCode;
-    localStorage.setItem("myCountryCode", newCode);
-    renderCountryGrid();
+    const connectorsUsed = ["and", "but", "because", "when", "while", "although", "however", "so", "therefore", "then", "if"]
+      .filter(c => lower.includes(" " + c + " "));
+    if (connectorsUsed.length === 0) {
+      logicParts.push("→ I cannot see clear connectors. Try to use words like 'because', 'when', 'however', 'so' to show logical relations.");
+    } else {
+      logicParts.push("→ You used connectors such as: " + connectorsUsed.join(", ") + ".");
+    }
 
-    try {
-      const countriesCol = db.collection("countries");
-      const batch = db.batch();
+    logicFeedbackEl.innerHTML = logicParts.join("<br>");
 
-      const newRef = countriesCol.doc(newCode);
-      batch.set(newRef, { count: firebase.firestore.FieldValue.increment(1) }, { merge: true });
+    // grammar feedback
+    if (grammarHints.length === 0) {
+      grammarFeedbackEl.innerHTML = "No basic grammar problems detected by the simple checker. There can still be advanced grammar issues, but overall it looks fine.";
+    } else {
+      const items = grammarHints.map(h => `<li>${h}</li>`).join("");
+      grammarFeedbackEl.innerHTML = `<ul>${items}</ul>`;
+    }
 
-      if (oldCode) {
-        const oldRef = countriesCol.doc(oldCode);
-        batch.set(oldRef, { count: firebase.firestore.FieldValue.increment(-1) }, { merge: true });
+    // badge + next
+    if (passed) {
+      badge.textContent = "Passed";
+      badge.className = "badge badge-pass";
+      nextBtn.disabled = false;
+      clearedCount++;
+      clearedLabel.textContent = clearedCount;
+    } else {
+      badge.textContent = "Not passed";
+      badge.className = "badge badge-fail";
+      nextBtn.disabled = true;
+    }
+  }
+
+  function goNextRoom() {
+    if (roomIndex < roomsPerFloor - 1) {
+      roomIndex++;
+    } else {
+      if (floorIndex < totalFloors - 1) {
+        floorIndex++;
+        roomIndex = 0;
+      } else {
+        alert("You have reached the end of the dungeon! You can refresh the page to start again.");
+        return;
       }
-
-      await batch.commit();
-    } catch (err) {
-      console.error("更新国家选择失败：", err);
-      alert("更新失败，可能是网络问题。你可以稍后刷新页面重试。");
     }
+    loadRoom();
   }
 
-  // 实时监听 countries 集合，更新排行榜
-  function subscribeRanking() {
-    db.collection("countries").onSnapshot(snapshot => {
-      const arr = [];
-      snapshot.forEach(doc => {
-        const data = doc.data();
-        const count = typeof data.count === "number" ? data.count : 0;
-        if (count < 0) data.count = 0;
-        arr.push({ code: doc.id, count: Math.max(0, count) });
-      });
+  scoreBtn.addEventListener("click", evaluateDescription);
+  nextBtn.addEventListener("click", goNextRoom);
 
-      // 加上那些还没有 doc 的国家（count=0）
-      COUNTRIES.forEach(c => {
-        if (!arr.find(x => x.code === c.code)) {
-          arr.push({ code: c.code, count: 0 });
-        }
-      });
-
-      // 排序：人数从多到少
-      arr.sort((a, b) => b.count - a.count);
-
-      const total = arr.reduce((sum, x) => sum + x.count, 0);
-      totalCitizens.textContent = total;
-
-      rankingList.innerHTML = "";
-      arr.forEach((item, index) => {
-        const c = COUNTRIES.find(x => x.code === item.code);
-        if (!c) return;  // 忽略未知 code
-
-        const li = document.createElement("li");
-        li.className = "ranking-item";
-        if (index === 0) li.classList.add("ranking-top1");
-        else if (index === 1) li.classList.add("ranking-top2");
-        else if (index === 2) li.classList.add("ranking-top3");
-
-        const percentage = total > 0 ? (item.count / total * 100) : 0;
-
-        li.innerHTML = `
-          <div class="ranking-row">
-            <div class="ranking-left">
-              <span class="rank-number">${index + 1}</span>
-              <span class="rank-flag">${c.emoji}</span>
-              <span class="rank-name">${c.name}</span>
-            </div>
-            <div class="rank-count">${item.count}</div>
-          </div>
-          <div class="progress-bar">
-            <div class="progress-inner" style="width:${percentage.toFixed(1)}%;"></div>
-          </div>
-        `;
-        rankingList.appendChild(li);
-      });
-    }, err => {
-      console.error("监听排行榜失败：", err);
-    });
-  }
-
-  // 初始化
-  renderCountryGrid();
-  subscribeRanking();
+  // init
+  loadRoom();
 </script>
 </body>
 </html>
