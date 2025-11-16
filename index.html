@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Word Dungeon · Image Description Challenge</title>
+  <title>Word Dungeon · AI Image Description Challenge</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
     * { box-sizing: border-box; }
@@ -59,11 +59,6 @@
       background: rgba(248,113,113,0.18);
       color: #fecaca;
     }
-    .badge-diff {
-      border-color: rgba(96,165,250,0.9);
-      background: rgba(37,99,235,0.22);
-      color: #dbeafe;
-    }
     .progress {
       width: 100%;
       height: 10px;
@@ -87,34 +82,13 @@
       flex: 1 1 300px;
       min-width: 0;
     }
-    .scene-box {
+    .scene-img {
+      width: 100%;
+      max-height: 260px;
       border-radius: 14px;
+      object-fit: cover;
+      background: #020617;
       border: 1px solid rgba(55,65,81,0.9);
-      background: linear-gradient(135deg, #0f172a, #111827);
-      padding: 10px;
-      height: 260px;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-    }
-    .scene-title {
-      font-size: 0.95rem;
-      color: #e5e7eb;
-      margin-bottom: 4px;
-    }
-    .scene-theme {
-      font-size: 1.4rem;
-      font-weight: 600;
-    }
-    .scene-sub {
-      font-size: 0.85rem;
-      color: #9ca3af;
-      margin-top: 4px;
-    }
-    .scene-footer {
-      font-size: 0.8rem;
-      color: #9ca3af;
-      margin-top: 8px;
     }
     .hint-box {
       margin-top: 8px;
@@ -202,9 +176,15 @@
     }
     .score-pass { color: #4ade80; }
     .score-fail { color: #f97373; }
-    ul {
-      margin: 4px 0 0 18px;
-      padding: 0;
+    pre {
+      white-space: pre-wrap;
+      word-wrap: break-word;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      font-size: 0.8rem;
+      background: rgba(15,23,42,0.96);
+      border-radius: 8px;
+      padding: 6px 8px;
+      border: 1px solid rgba(31,41,55,1);
     }
     .footer-note {
       margin-top: 18px;
@@ -219,10 +199,11 @@
 </head>
 <body>
 <div class="wrapper">
-  <h1>Word Dungeon · Image Description Challenge</h1>
+  <h1>Word Dungeon · AI Image Description Challenge</h1>
   <div class="subtitle">
-    7 floors, each with 7 rooms. In every room you see a scenario and write a description in English (or German).<br>
-    The more detailed, logical and relevant your text is, the higher your score (0–1000). You need ≥ <b>600</b> to pass.
+    7 floors × 7 rooms. Each room shows a random image based on a theme.<br>
+    You can write your description in <b>English or German</b>. The AI will detect the language automatically,
+    score your text (0–1000), point out grammar issues and suggest a better version. Score ≥ <b>600</b> to pass.
   </div>
 
   <div class="status-row">
@@ -238,32 +219,22 @@
 
   <div class="layout">
     <div class="left">
-      <div class="scene-box" id="sceneBox">
-        <div>
-          <div class="scene-title">Current scene</div>
-          <div class="scene-theme" id="sceneTheme">Everyday life</div>
-          <div class="scene-sub" id="sceneSub">
-            Imagine you are inside this scene and someone asks you: “What is happening here?”.
-          </div>
-        </div>
-        <div class="scene-footer" id="sceneFooter">
-          Tip: Try to describe who is there, what they are doing, where they are, and why they might be there.
-        </div>
-      </div>
+      <img id="sceneImg" class="scene-img" src="" alt="Scene image" />
       <div class="hint-box">
-        Scene tags (for relevance):
+        Scene theme: <span id="sceneTheme"></span><br />
+        Tags for the AI (it does NOT see the image, only these tags and your text):
         <div class="hint-keywords" id="hintKeywords"></div>
       </div>
     </div>
 
     <div class="right">
-      <div class="label">Your description</div>
-      <textarea id="desc" placeholder="Write 3–5 sentences. Focus on people, place, actions, time, reasons and feelings."></textarea>
+      <div class="label">Your description (English or German)</div>
+      <textarea id="desc" placeholder="Write 3–6 sentences. The AI will reply in the same language you use."></textarea>
       <div class="textarea-hint">
-        Example structure: ① One general sentence about the scene. ② 2–3 detail sentences. ③ Optional: your opinion or guess.
+        Try to describe people, place, actions, time, reasons and feelings.
       </div>
       <div class="btn-row">
-        <button class="btn-primary" id="scoreBtn">Evaluate &amp; Score</button>
+        <button class="btn-primary" id="scoreBtn">Ask AI to evaluate</button>
         <button class="btn-secondary" id="nextBtn" disabled>Next room ▶</button>
       </div>
 
@@ -277,91 +248,96 @@
           </div>
           <div id="scoreBreakdown"></div>
         </div>
-        <div class="panel" id="logicPanel" style="display:none;">
-          <div class="panel-title">Logic &amp; structure feedback</div>
-          <div id="logicFeedback"></div>
+
+        <div class="panel" id="feedbackPanel" style="display:none;">
+          <div class="panel-title">Feedback from AI</div>
+          <div><b>Explanation:</b></div>
+          <pre id="aiExplanation"></pre>
+          <div><b>Grammar issues (if any):</b></div>
+          <pre id="aiGrammar"></pre>
         </div>
-        <div class="panel" id="grammarPanel" style="display:none;">
-          <div class="panel-title">Basic grammar &amp; style hints</div>
-          <div id="grammarFeedback"></div>
-          <div style="margin-top:4px;font-size:0.78rem;color:#9ca3af;">
-            This is only a very simple rule-based checker. For real grammar correction you would need an AI or grammar API.
-          </div>
+
+        <div class="panel" id="betterPanel" style="display:none;">
+          <div class="panel-title">Improved version (from AI)</div>
+          <pre id="aiBetter"></pre>
         </div>
       </div>
     </div>
   </div>
 
   <div class="footer-note">
-    You can later replace the “scene box” with real images and connect this game to an AI API for true grammar checking.
+    Note: The model cannot actually “see” the image. It only sees the scene tags and your text.
   </div>
 </div>
 
 <script>
-  // 7 floors × 7 rooms, simplified text-only scenes (you can later attach images)
+  // ======= CONFIG: 后端地址，如果你的项目域名不同，只改这一行 =======
+  const BACKEND_URL = "https://word-dungeon-backend.vercel.app/api/eval";
+
+  // 7 floors × 7 rooms: each has theme + tags (for AI + for image seed)
   const dungeon = [
     [ // Floor 1 – Everyday life
-      { theme: "Park with a dog", tags: "girl, dog, park, sunny, playing" },
-      { theme: "Family in the living room", tags: "family, sofa, TV, relaxing" },
-      { theme: "Cooking in the kitchen", tags: "kitchen, cooking, dinner, food" },
-      { theme: "Shopping in a supermarket", tags: "supermarket, trolley, shelves, cashier" },
-      { theme: "Busy street", tags: "street, cars, people, city" },
-      { theme: "Playground", tags: "children, playground, swing, slide" },
-      { theme: "Bedroom evening", tags: "bedroom, reading, lamp, quiet" }
+      { theme: "Park with a dog", tags: "girl,dog,park,sunny,playing" },
+      { theme: "Family in the living room", tags: "family,sofa,TV,relaxing" },
+      { theme: "Cooking in the kitchen", tags: "kitchen,cooking,dinner,food" },
+      { theme: "Shopping in a supermarket", tags: "supermarket,trolley,shelves,cashier" },
+      { theme: "Busy street", tags: "street,cars,people,city" },
+      { theme: "Playground", tags: "children,playground,swing,slide" },
+      { theme: "Bedroom evening", tags: "bedroom,reading,lamp,quiet" }
     ],
     [ // Floor 2 – School & learning
-      { theme: "Classroom lesson", tags: "classroom, teacher, students, blackboard" },
-      { theme: "Studying in the library", tags: "library, books, table, reading" },
-      { theme: "Writing an exam", tags: "exam, desk, paper, nervous" },
-      { theme: "Break at the school yard", tags: "school yard, friends, chat, rest" },
-      { theme: "Online learning", tags: "computer, online class, headphones" },
-      { theme: "Science lab", tags: "lab, experiment, coat, safety" },
-      { theme: "Graduation day", tags: "graduation, gown, ceremony, photo" }
+      { theme: "Classroom lesson", tags: "classroom,teacher,students,blackboard" },
+      { theme: "Studying in the library", tags: "library,books,table,reading" },
+      { theme: "Writing an exam", tags: "exam,desk,paper,nervous" },
+      { theme: "School yard break", tags: "schoolyard,friends,chat,rest" },
+      { theme: "Online learning", tags: "computer,online class,headphones" },
+      { theme: "Science lab", tags: "lab,experiment,coat,safety" },
+      { theme: "Graduation day", tags: "graduation,gown,ceremony,photo" }
     ],
     [ // Floor 3 – City & transport
-      { theme: "Train station", tags: "train, station, platform, luggage" },
-      { theme: "Bus stop", tags: "bus, stop, waiting, people" },
-      { theme: "Metro ride", tags: "subway, metro, crowd, city" },
-      { theme: "Airport gate", tags: "airport, airplane, boarding, security" },
-      { theme: "Cycling in the city", tags: "bicycle, bike lane, traffic" },
-      { theme: "Traffic jam", tags: "cars, road, traffic jam" },
-      { theme: "Night city lights", tags: "city, night, lights, skyline" }
+      { theme: "Train station", tags: "train,station,platform,luggage" },
+      { theme: "Bus stop", tags: "bus,stop,waiting,people" },
+      { theme: "Metro ride", tags: "subway,metro,crowd,city" },
+      { theme: "Airport gate", tags: "airport,airplane,boarding,security" },
+      { theme: "Cycling in the city", tags: "bicycle,bike lane,traffic" },
+      { theme: "Traffic jam", tags: "cars,road,traffic jam" },
+      { theme: "Night city lights", tags: "city,night,lights,skyline" }
     ],
     [ // Floor 4 – Work & jobs
-      { theme: "Office meeting", tags: "office, meeting, laptop, team" },
-      { theme: "Restaurant kitchen", tags: "chef, kitchen, restaurant, cooking" },
-      { theme: "Factory line", tags: "factory, workers, machines" },
-      { theme: "Hospital corridor", tags: "doctor, nurse, patient, hospital" },
-      { theme: "Construction site", tags: "construction, workers, helmets" },
-      { theme: "Hotel lobby", tags: "hotel, reception, lobby, guests" },
-      { theme: "Police on the street", tags: "police, car, street, patrol" }
+      { theme: "Office meeting", tags: "office,meeting,laptop,team" },
+      { theme: "Restaurant kitchen", tags: "chef,kitchen,restaurant,cooking" },
+      { theme: "Factory line", tags: "factory,workers,machines" },
+      { theme: "Hospital corridor", tags: "doctor,nurse,patient,hospital" },
+      { theme: "Construction site", tags: "construction,workers,helmets" },
+      { theme: "Hotel lobby", tags: "hotel,reception,lobby,guests" },
+      { theme: "Police on the street", tags: "police,car,street,patrol" }
     ],
     [ // Floor 5 – Free time & nature
-      { theme: "Beach holiday", tags: "beach, sea, vacation, sand" },
-      { theme: "Mountain hike", tags: "mountain, hiking, backpack" },
-      { theme: "Forest walk", tags: "forest, trees, sunlight" },
-      { theme: "Jogging in the park", tags: "park, jogging, exercise" },
-      { theme: "Lake with a boat", tags: "lake, boat, relax" },
-      { theme: "Camping at night", tags: "camping, tent, campfire, stars" },
-      { theme: "Snowy day", tags: "snow, winter, snowman, kids" }
+      { theme: "Beach holiday", tags: "beach,sea,vacation,sand" },
+      { theme: "Mountain hike", tags: "mountain,hiking,backpack" },
+      { theme: "Forest walk", tags: "forest,trees,sunlight" },
+      { theme: "Jogging in the park", tags: "park,jogging,exercise" },
+      { theme: "Lake with a boat", tags: "lake,boat,relax" },
+      { theme: "Camping at night", tags: "camping,tent,campfire,stars" },
+      { theme: "Snowy day", tags: "snow,winter,snowman,kids" }
     ],
     [ // Floor 6 – Health & services
-      { theme: "Fitness gym", tags: "gym, training, weights" },
-      { theme: "Pharmacy", tags: "pharmacy, medicine, shelves" },
-      { theme: "Dentist", tags: "dentist, clinic, chair" },
-      { theme: "Hair salon", tags: "hairdresser, salon, haircut" },
-      { theme: "Supermarket groceries", tags: "supermarket, food, basket" },
-      { theme: "Local market", tags: "market, fruit, vegetables" },
-      { theme: "Cleaning at home", tags: "cleaning, vacuum, housework" }
+      { theme: "Fitness gym", tags: "gym,training,weights" },
+      { theme: "Pharmacy", tags: "pharmacy,medicine,shelves" },
+      { theme: "Dentist", tags: "dentist,clinic,chair" },
+      { theme: "Hair salon", tags: "hairdresser,salon,haircut" },
+      { theme: "Supermarket groceries", tags: "supermarket,food,basket" },
+      { theme: "Local market", tags: "market,fruit,vegetables" },
+      { theme: "Cleaning at home", tags: "cleaning,vacuum,housework" }
     ],
     [ // Floor 7 – Fantasy & adventure
-      { theme: "Dark dungeon", tags: "dungeon, torch, stone, dark" },
-      { theme: "Castle at night", tags: "castle, moon, night" },
-      { theme: "Dragon in the sky", tags: "dragon, fire, sky" },
-      { theme: "Knight in armor", tags: "knight, sword, armor" },
-      { theme: "Wizard casting a spell", tags: "wizard, magic, light" },
-      { theme: "Village market", tags: "village, market, people" },
-      { theme: "Battlefield", tags: "battle, warrior, field" }
+      { theme: "Dark dungeon", tags: "dungeon,torch,stone,dark" },
+      { theme: "Castle at night", tags: "castle,moon,night" },
+      { theme: "Dragon in the sky", tags: "dragon,fire,sky" },
+      { theme: "Knight in armor", tags: "knight,sword,armor" },
+      { theme: "Wizard casting a spell", tags: "wizard,magic,light" },
+      { theme: "Village market", tags: "village,market,people" },
+      { theme: "Battlefield", tags: "battle,warrior,field" }
     ]
   ];
 
@@ -378,9 +354,9 @@
   const clearedLabel = document.getElementById("clearedLabel");
   const badge = document.getElementById("badge");
   const progressInner = document.getElementById("progressInner");
+
+  const sceneImg = document.getElementById("sceneImg");
   const sceneThemeEl = document.getElementById("sceneTheme");
-  const sceneSubEl = document.getElementById("sceneSub");
-  const sceneFooterEl = document.getElementById("sceneFooter");
   const hintKeywordsEl = document.getElementById("hintKeywords");
 
   const descInput = document.getElementById("desc");
@@ -392,10 +368,16 @@
   const scoreResultTextEl = document.getElementById("scoreResultText");
   const scoreBreakdownEl = document.getElementById("scoreBreakdown");
 
-  const logicPanel = document.getElementById("logicPanel");
-  const logicFeedbackEl = document.getElementById("logicFeedback");
-  const grammarPanel = document.getElementById("grammarPanel");
-  const grammarFeedbackEl = document.getElementById("grammarFeedback");
+  const feedbackPanel = document.getElementById("feedbackPanel");
+  const betterPanel = document.getElementById("betterPanel");
+  const aiExplanationEl = document.getElementById("aiExplanation");
+  const aiGrammarEl = document.getElementById("aiGrammar");
+  const aiBetterEl = document.getElementById("aiBetter");
+
+  function randomImageUrl(tags) {
+    const seed = encodeURIComponent(tags);
+    return `https://picsum.photos/seed/${seed}/800/500`;
+  }
 
   function updateProgress() {
     const idx = floorIndex * roomsPerFloor + roomIndex;
@@ -409,10 +391,8 @@
     roomLabel.textContent = roomIndex + 1;
     clearedLabel.textContent = clearedCount;
 
+    sceneImg.src = randomImageUrl(room.tags);
     sceneThemeEl.textContent = room.theme;
-    sceneSubEl.textContent = "Use your imagination: describe this scene as if it were a photo in front of you.";
-    sceneFooterEl.textContent = "Try to answer: Who is here? Where? What are they doing? Why? How do they feel?";
-
     hintKeywordsEl.textContent = room.tags;
 
     badge.textContent = "Not evaluated";
@@ -420,194 +400,83 @@
 
     descInput.value = "";
     scorePanel.style.display = "none";
-    logicPanel.style.display = "none";
-    grammarPanel.style.display = "none";
+    feedbackPanel.style.display = "none";
+    betterPanel.style.display = "none";
     nextBtn.disabled = true;
 
     updateProgress();
   }
 
-  function splitSentences(text) {
-    return text
-      .split(/[\.\!\?]+/)
-      .map(s => s.trim())
-      .filter(s => s.length > 0);
-  }
-
-  function tokenise(text) {
-    return text
-      .split(/\s+/)
-      .map(w => w.trim())
-      .filter(w => w.length > 0);
-  }
-
-  function evaluateDescription() {
+  async function evaluateWithAI() {
     const raw = descInput.value.trim();
-    const lower = raw.toLowerCase();
-
     if (raw.length < 20) {
       alert("Your text is very short. Please write at least 2–3 sentences.");
       return;
     }
 
     const room = dungeon[floorIndex][roomIndex];
-    const keywords = room.tags.split(",").map(k => k.trim().toLowerCase()).filter(Boolean);
 
-    const words = tokenise(lower);
-    const wordCount = words.length;
-    const uniqueWordCount = new Set(words).size;
+    scoreBtn.disabled = true;
+    scoreBtn.textContent = "AI is thinking…";
+    badge.textContent = "Evaluating…";
+    badge.className = "badge";
 
-    const sentences = splitSentences(raw);
-    const sentenceCount = sentences.length;
+    try {
+      const res = await fetch(BACKEND_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          text: raw,
+          theme: room.theme,
+          tags: room.tags
+        })
+      });
+      if (!res.ok) {
+        throw new Error("Backend error: " + res.status);
+      }
+      const data = await res.json();
 
-    // --- relevance score (0–300) ---
-    let hits = 0;
-    keywords.forEach(kw => {
-      if (kw && lower.includes(kw)) hits++;
-    });
-    const relevanceScore = Math.min(300, (hits / Math.max(1, keywords.length)) * 300);
+      const score = data.score ?? 0;
+      const passed = !!data.passed;
 
-    // --- content / richness score (0–400) ---
-    // more words + more unique words = better
-    const lengthScore = Math.min(250, wordCount * 5);        // ~50 words → 250
-    const varietyScore = Math.min(150, uniqueWordCount * 5); // ~30 unique words → 150
-    const contentScore = lengthScore + varietyScore;         // max 400
+      scorePanel.style.display = "block";
+      feedbackPanel.style.display = "block";
+      betterPanel.style.display = "block";
 
-    // --- structure / logic score (0–250) ---
-    let structureScore = 0;
-    const connectors = ["and", "but", "because", "when", "while", "although", "however", "so", "therefore", "then", "if"];
-    let connectorHits = 0;
-    connectors.forEach(c => {
-      if (lower.includes(" " + c + " ")) connectorHits++;
-    });
+      scoreValueEl.textContent = score;
+      scoreValueEl.className = "score-big " + (passed ? "score-pass" : "score-fail");
+      scoreResultTextEl.textContent = passed ? "PASS" : "NOT PASS";
 
-    // sentence count: 1 sentence = weak, 3–6 = good
-    if (sentenceCount >= 3 && sentenceCount <= 6) {
-      structureScore += 130;
-    } else if (sentenceCount === 2 || sentenceCount === 7) {
-      structureScore += 90;
-    } else {
-      structureScore += 50;
-    }
+      scoreBreakdownEl.innerHTML = data.breakdown || "";
+      aiExplanationEl.textContent = data.explanation || "(No explanation returned.)";
 
-    // connectors
-    if (connectorHits >= 3) structureScore += 120;
-    else if (connectorHits === 2) structureScore += 80;
-    else if (connectorHits === 1) structureScore += 40;
+      if (Array.isArray(data.grammarIssues) && data.grammarIssues.length > 0) {
+        aiGrammarEl.textContent = data.grammarIssues.map((g, i) => `${i + 1}. ${g}`).join("\n");
+      } else {
+        aiGrammarEl.textContent = "No clear grammar issues reported by the AI (or it did not mention them).";
+      }
 
-    if (structureScore > 250) structureScore = 250;
+      aiBetterEl.textContent = data.betterVersion || "(No improved version returned.)";
 
-    // --- basic grammar / style hints (rule-based) ---
-    const grammarHints = [];
-
-    // 1. punctuation at the end
-    if (!/[.!?]\s*$/.test(raw)) {
-      grammarHints.push("It looks like your text does not end with a full stop, question mark or exclamation mark. Try to finish sentences properly.");
-    }
-
-    // 2. no punctuation at all
-    if (!/[.!?]/.test(raw)) {
-      grammarHints.push("I cannot see any sentence-ending punctuation ('.', '!' or '?'). Try to split your ideas into clear sentences.");
-    }
-
-    // 3. lowercase 'i' as a pronoun in English
-    if (/\bi\b/.test(lower)) {
-      grammarHints.push("In English, the pronoun 'I' should always be capitalized.");
-    }
-
-    // 4. double spaces
-    if (raw.includes("  ")) {
-      grammarHints.push("There seem to be double spaces. Try to keep only one space between words.");
-    }
-
-    // 5. repeated 'the the'
-    if (/\bthe\s+the\b/i.test(raw)) {
-      grammarHints.push("I found 'the the'. That is usually a typo – remove one 'the'.");
-    }
-
-    // 6. very short sentences
-    const veryShortSentences = sentences.filter(s => tokenise(s).length < 4).length;
-    if (veryShortSentences >= 2) {
-      grammarHints.push("Some of your sentences are extremely short. Try to add more details to each sentence.");
-    }
-
-    // 7. possible missing verb (VERY rough check)
-    const simpleVerbs = ["is", "are", "was", "were", "have", "has", "do", "does", "did", "play", "go", "goes", "went", "see", "sees", "saw", "eat", "eats", "ate"];
-    const maybeNoVerb = sentences.filter(s => {
-      const w = tokenise(s.toLowerCase());
-      return w.length >= 3 && !w.some(x => simpleVerbs.includes(x));
-    }).length;
-    if (maybeNoVerb >= 1) {
-      grammarHints.push("At least one sentence might not contain a clear verb. Check if every sentence has an action word.");
-    }
-
-    // Grammar penalty: up to -150
-    const grammarPenalty = Math.min(150, grammarHints.length * 40);
-
-    // total score
-    let totalScore = Math.round(relevanceScore + contentScore + structureScore - grammarPenalty);
-    if (totalScore < 0) totalScore = 0;
-    if (totalScore > 1000) totalScore = 1000;
-
-    const passed = totalScore >= 600;
-
-    // --- update UI ---
-    scorePanel.style.display = "block";
-    logicPanel.style.display = "block";
-    grammarPanel.style.display = "block";
-
-    scoreValueEl.textContent = totalScore;
-    scoreValueEl.className = "score-big " + (passed ? "score-pass" : "score-fail");
-    scoreResultTextEl.textContent = passed ? "PASS" : "NOT PASS";
-
-    scoreBreakdownEl.innerHTML = `
-      <div>Relevance (keywords): ${Math.round(relevanceScore)} / 300</div>
-      <div>Content &amp; richness: ${Math.round(contentScore)} / 400</div>
-      <div>Structure &amp; logic: ${Math.round(structureScore)} / 250</div>
-      <div>Grammar penalty: −${Math.round(grammarPenalty)} (based on simple rule checks)</div>
-    `;
-
-    // logic feedback
-    const logicParts = [];
-    logicParts.push(`• Sentences: ${sentenceCount} (3–6 is ideal for this game).`);
-    logicParts.push(`• Total words: ${wordCount} (more words usually mean more details).`);
-    logicParts.push(`• Unique words: ${uniqueWordCount} (variety makes the text richer).`);
-
-    if (sentenceCount < 3) {
-      logicParts.push("→ Try to write at least 3 sentences: one general sentence and a few detail sentences.");
-    } else if (sentenceCount > 7) {
-      logicParts.push("→ You wrote many sentences. That is great, but you can also combine some of them using connectors like 'because', 'when', or 'however'.");
-    }
-
-    const connectorsUsed = ["and", "but", "because", "when", "while", "although", "however", "so", "therefore", "then", "if"]
-      .filter(c => lower.includes(" " + c + " "));
-    if (connectorsUsed.length === 0) {
-      logicParts.push("→ I cannot see clear connectors. Try to use words like 'because', 'when', 'however', 'so' to show logical relations.");
-    } else {
-      logicParts.push("→ You used connectors such as: " + connectorsUsed.join(", ") + ".");
-    }
-
-    logicFeedbackEl.innerHTML = logicParts.join("<br>");
-
-    // grammar feedback
-    if (grammarHints.length === 0) {
-      grammarFeedbackEl.innerHTML = "No basic grammar problems detected by the simple checker. There can still be advanced grammar issues, but overall it looks fine.";
-    } else {
-      const items = grammarHints.map(h => `<li>${h}</li>`).join("");
-      grammarFeedbackEl.innerHTML = `<ul>${items}</ul>`;
-    }
-
-    // badge + next
-    if (passed) {
-      badge.textContent = "Passed";
-      badge.className = "badge badge-pass";
-      nextBtn.disabled = false;
-      clearedCount++;
-      clearedLabel.textContent = clearedCount;
-    } else {
-      badge.textContent = "Not passed";
+      if (passed) {
+        badge.textContent = "Passed";
+        badge.className = "badge badge-pass";
+        nextBtn.disabled = false;
+        clearedCount++;
+        clearedLabel.textContent = clearedCount;
+      } else {
+        badge.textContent = "Not passed";
+        badge.className = "badge badge-fail";
+        nextBtn.disabled = true;
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Error while talking to the AI backend. Open DevTools console for details.");
+      badge.textContent = "Error";
       badge.className = "badge badge-fail";
-      nextBtn.disabled = true;
+    } finally {
+      scoreBtn.disabled = false;
+      scoreBtn.textContent = "Ask AI to evaluate";
     }
   }
 
@@ -626,10 +495,9 @@
     loadRoom();
   }
 
-  scoreBtn.addEventListener("click", evaluateDescription);
+  scoreBtn.addEventListener("click", evaluateWithAI);
   nextBtn.addEventListener("click", goNextRoom);
 
-  // init
   loadRoom();
 </script>
 </body>
